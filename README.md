@@ -3,6 +3,13 @@ A bunch of scripts to sanatize 3d files
 
 -- batch all files in a folder and weight everything not named "BBody" to the head bone, with the exception of "Chain" and "Backpack" which get weighed to the SPine bone. This is for boomboxhead oncyber fix
 
+This script is a Blender add-on that allows for batch processing of 3D files in the context of adding weights to a specific bone in an armature. The script allows the user to specify an input folder and an output folder, along with a chosen file format and export format.
+
+The script iterates through each file in the input folder that matches the chosen file format, and loads the file into the scene based on the chosen file format. The script then adds an armature modifier to the object, if not already present, and assigns a new vertex group to the object, with a weight of 1.0, to the bone of interest. The script then exports the file in the chosen export format to the output folder, and deletes any temporary data from the scene.
+
+The script requires the presence of a base mesh object called "BBody" that has an armature modifier. The script also looks for a bone called "Head_bind" in the armature to use as the bone of interest for weight assignment.
+
+To use the add-on, the user can navigate to the "Tools" category in the 3D Viewport and access the "Batch Everything" panel.
 
 
 ```python
