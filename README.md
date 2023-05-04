@@ -19,7 +19,7 @@ A bunch of scripts to sanatize 3d files
 - Define the BATCH_PT_vrm_process_panel class, which inherits from bpy.types.Panel. This class is responsible for creating the add-on's UI in Blender's 3D Viewport > Tools panel. It displays the properties from BatchVRMProcessProperties and the "Execute Script" button.
 - Implement the register() and unregister() functions, which register and unregister the classes and properties with Blender.
 - Check if the script is being run as the main module, and if so, call the register() function.
-- With this script, you can batch process multiple files by running a specified script on each file, and then export the resulting files in either VRM or GLB format. """
+- With this script, you can batch process multiple files by running a specified script on each file, and then export the resulting files in either VRM or GLB format. 
 
 ``python
 import bpy
