@@ -1,3 +1,5 @@
+print("Second script called")
+
 bl_info = {
     "name": "Weight Objects to Head Bone",
     "author": "OpenAI",
@@ -19,12 +21,13 @@ class OBJECT_OT_weight_objects_to_head_bone(bpy.types.Operator):
 
     def execute(self, context):
         # Find the base mesh object "BBody"
-        bpy.ops.object.select_all(action='SELECT')
         base_mesh_obj = bpy.data.objects.get("BBody")
 
         if not base_mesh_obj:
             self.report({'ERROR'}, "Base mesh object 'BBody' not found in the scene")
             return {'CANCELLED'}
+        else:
+            print("Base mesh object: ", base_mesh_obj.name)
 
         # Check if the base mesh object has an armature modifier
         armature_modifier = None
@@ -36,20 +39,25 @@ class OBJECT_OT_weight_objects_to_head_bone(bpy.types.Operator):
         if not armature_modifier:
             self.report({'ERROR'}, "Base mesh object must have an Armature modifier")
             return {'CANCELLED'}
+        else:
+            print("Armature modifier found on base mesh object: ", armature_modifier.name)
 
         # Get the armature object from the modifier
         armature_obj = armature_modifier.object
-        print("Armature object: ", armature_obj.name)
+
+        if not armature_obj:
+            self.report({'ERROR'}, "Armature object not found in the scene")
+            return {'CANCELLED'}
+        else:
+            print("Armature object: ", armature_obj.name)
 
         # Make sure armature is selected
         bpy.ops.object.select_all(action='DESELECT')
         armature_obj.select_set(True)
         context.view_layer.objects.active = armature_obj
-        print("Armature selected")
 
         # Set armature to Pose mode
         bpy.ops.object.mode_set(mode='POSE')
-        print("Armature in pose mode")
 
         # Find the head bone
         head_bone = None
@@ -57,11 +65,12 @@ class OBJECT_OT_weight_objects_to_head_bone(bpy.types.Operator):
             if bone.name == 'Head_bind':
                 head_bone = bone
                 break
-        print("Head bone: ", head_bone.name)
 
         if not head_bone:
             self.report({'ERROR'}, "Head bone not found in armature")
             return {'CANCELLED'}
+        else:
+            print("Head bone: ", head_bone.name)
 
         # Iterate through all objects in the scene
         for obj in bpy.data.objects:
@@ -91,6 +100,7 @@ class OBJECT_OT_weight_objects_to_head_bone(bpy.types.Operator):
         self.report({'INFO'}, "Weighted objects to head bone successfully")
 
         return {'FINISHED'}
+
 
 def menu_func(self, context):
     self.layout.operator(OBJECT_OT_weight_objects_to_head_bone.bl_idname)

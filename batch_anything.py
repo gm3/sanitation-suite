@@ -98,8 +98,39 @@ class BATCH_OT_execute_script(bpy.types.Operator):
             else:
                 continue
 
+            # Store the current selection state
+            original_selection = []
+            for obj in bpy.data.objects:
+                original_selection.append(obj.select_get())
+
+            # Store the current active object
+            original_active = context.view_layer.objects.active
+
+            # Set the context to a 3D Viewport
+            for area in bpy.context.screen.areas:
+                if area.type == 'VIEW_3D':
+                    override = bpy.context.copy()
+                    override['area'] = area
+                    override['region'] = area.regions[-1]
+                    bpy.ops.object.select_all(action='DESELECT')
+                    break
+
             # Execute the script
             execute_script(script_code)
+
+            # Reset the context to the original context
+            bpy.ops.object.select_all(action='DESELECT')
+            for i, obj in enumerate(original_selection):
+                if obj:
+                    context.view_layer.objects.active = obj
+                    obj.select_set(True)
+
+            # Set the active object back to the original active object
+            if original_active:
+                context.view_layer.objects.active = original_active
+            else:
+                context.view_layer.objects.active = None
+
 
             # Export the file in the chosen format
             output_format = context.scene.batch_vrm_props.export_format
