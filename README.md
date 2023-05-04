@@ -1,5 +1,5 @@
 # sanitation-suite
-A bunch of scripts to sanatize 3d files
+## Batch process a FOlder OF VRMs, and add weights to unweighted objects to specific bones
 
 -- batch all files in a folder and weight everything not named "BBody" to the head bone, with the exception of "Chain" and "Backpack" which get weighed to the SPine bone. This is for boomboxhead oncyber fix
 
