@@ -21,7 +21,7 @@ A bunch of scripts to sanatize 3d files
 - Check if the script is being run as the main module, and if so, call the register() function.
 - With this script, you can batch process multiple files by running a specified script on each file, and then export the resulting files in either VRM or GLB format. 
 
-``python
+```python
 import bpy
 import os
 
@@ -187,11 +187,11 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-``
+```
 
 ## Weight All Objects Except the BBody to the headbone (fixes Oncyber bug)
 
-``python
+```python
 bl_info = {
     "name": "Weight Objects to Head Bone",
     "author": "OpenAI",
@@ -295,4 +295,4 @@ def unregister():
 if __name__ == "__main__":
     register()
 
-``
+```
