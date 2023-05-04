@@ -94,7 +94,7 @@ class BATCH_OT_execute_script(bpy.types.Operator):
             elif file_format == "GLB" and file.endswith(".glb"):
                 bpy.ops.import_scene.gltf(filepath=filepath)
             elif file_format == "FBX" and file.endswith(".fbx"):
-                                bpy.ops.import_scene.fbx(filepath=filepath)
+                bpy.ops.import_scene.fbx(filepath=filepath)
             else:
                 continue
 
@@ -116,7 +116,90 @@ class BATCH_OT_execute_script(bpy.types.Operator):
                     break
 
             # Execute the script
-            execute_script(script_code)
+            base_mesh_obj = bpy.data.objects.get("BBody")
+
+            if not base_mesh_obj:
+                self.report({'ERROR'}, "Base mesh object 'BBody' not found in the scene")
+                return {'CANCELLED'}
+            else:
+                print("Base mesh object: ", base_mesh_obj.name)
+
+            # Check if the base mesh object has an armature modifier
+            armature_modifier = None
+            for modifier in base_mesh_obj.modifiers:
+                if modifier.type == 'ARMATURE':
+                    armature_modifier = modifier
+                    break
+
+            if not armature_modifier:
+                self.report({'ERROR'}, "Base mesh object must have an Armature modifier")
+                return {'CANCELLED'}
+            else:
+                print("Armature modifier found on base mesh object: ", armature_modifier.name)
+
+            # Get the armature object from the modifier
+            armature_obj = armature_modifier.object
+
+            if not armature_obj:
+                self.report({'ERROR'}, "Armature object not found in the scene")
+                return {'CANCELLED'}
+            else:
+                print("Armature object: ", armature_obj.name)
+
+            # Make sure armature is selected
+            bpy.ops.object.select_all(action='DESELECT')
+            armature_obj.select_set(True)
+            context.view_layer.objects.active = armature_obj
+
+            # Set armature to Pose mode
+            bpy.ops.object.mode_set(mode='POSE')
+
+            # Find the head bone
+            head_bone = None
+            for bone in armature_obj.pose.bones:
+                if bone.name == 'Head_bind':
+                    head_bone = bone
+                    break
+
+            if not head_bone:
+                self.report({'ERROR'}, "Head bone not found in armature")
+                return {'CANCELLED'}
+            else:
+                print("Head bone: ", head_bone.name)
+
+            # Iterate through all objects in the scene
+            for obj in bpy.data.objects:
+                # Check if the object is a mesh and not the base mesh object "BBody"
+                if obj.type == 'MESH' and obj != base_mesh_obj:
+                    # Add an armature modifier to the object, if not present
+                    armature_modifier = None
+                    for modifier in obj.modifiers:
+                        if modifier.type == 'ARMATURE':
+                            armature_modifier = modifier
+                            break
+
+                    if not armature_modifier:
+                        armature_modifier = obj.modifiers.new('Armature', 'ARMATURE')
+
+                    # Set the armature object in the object's modifier
+                    armature_modifier.object = armature_obj
+
+                    # Add a new vertex group to the object and assign it to the appropriate bone
+                    if obj.name == 'Backpack':
+                        bone_name = 'Spine2_bind'
+                    elif obj.name == 'Chain':
+                        bone_name = 'Spine2_bind'
+                    else:
+                        bone_name = head_bone.name
+                        
+                    vertex_group = obj.vertex_groups.new(name=bone_name)
+                    vertices = [v.index for v in obj.data.vertices]
+                    vertex_group.add(vertices, 1.0, 'REPLACE')  # 100% weight
+
+            # Set armature back to Object mode
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            self.report({'INFO'}, "Weighted objects to head bone successfully")
 
             # Reset the context to the original context
             bpy.ops.object.select_all(action='DESELECT')
@@ -130,7 +213,6 @@ class BATCH_OT_execute_script(bpy.types.Operator):
                 context.view_layer.objects.active = original_active
             else:
                 context.view_layer.objects.active = None
-
 
             # Export the file in the chosen format
             output_format = context.scene.batch_vrm_props.export_format
