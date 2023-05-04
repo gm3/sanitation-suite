@@ -9,6 +9,42 @@ The script iterates through each file in the input folder that matches the chose
 
 The script requires the presence of a base mesh object called "BBody" that has an armature modifier. The script also looks for a bone called "Head_bind" in the armature to use as the bone of interest for weight assignment.
 
+The script defines several functions and classes:
+
+* execute_script(script_code): This function takes a string of Python code as input and executes it in a namespace with built-in functions. It is used to execute the user-defined script file in the add-on.
+
+* BatchVRMProcessProperties: This is a class that defines the properties for the add-on. It defines three string properties (input_folder, output_folder, and script_file), and two enum properties (export_format and file_format) that allow the user to choose the export and file formats.
+
+* BATCH_OT_execute_script: This is a Blender operator class that defines the "Execute Script" button in the add-on. When the button is clicked, this operator performs the batch processing of files.
+
+* BATCH_PT_vrm_process_panel: This is a Blender panel class that defines the UI layout for the add-on. It allows the user to input the necessary properties and execute the script.
+
+* register(): This function registers the classes with Blender's Python API.
+
+* unregister(): This function unregisters the classes from Blender's Python API.
+
+* The BATCH_OT_execute_script operator performs the following tasks when executed:
+
+* It gets the necessary input parameters from the BatchVRMProcessProperties properties.
+
+* It checks if the user-defined script file exists, and if not, it returns an error message and cancels the operator.
+
+* It iterates through all files in the input folder that match the chosen file format, and loads the file into the scene based on the chosen file format.
+
+* It finds the base mesh object called "BBody", and checks if it has an armature modifier. It also finds the bone of interest called "Head_bind" in the armature.
+
+* It adds an armature modifier to the object, if not already present, and assigns a new vertex group to the object, with a weight of 1.0, to the bone of interest.
+
+* It exports the file in the chosen export format to the output folder.
+
+* It deletes any temporary data from the scene.
+
+* It updates the progress bar to show the progress of the batch processing.
+
+* When all files have been processed, it displays a message to the user that the batch processing has completed successfully.
+
+## Usage
+
 To use the add-on, the user can navigate to the "Tools" category in the 3D Viewport and access the "Batch Everything" panel.
 
 
