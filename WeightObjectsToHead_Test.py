@@ -1,16 +1,5 @@
-bl_info = {
-    "name": "Weight Objects to Head Bone",
-    "author": "OpenAI",
-    "version": (1, 0),
-    "blender": (2, 80, 0),
-    "location": "View3D > Object > Weight Objects to Head Bone",
-    "description": "Weights all objects except 'BBody' to the head bone with 100% influence",
-    "warning": "",
-    "wiki_url": "",
-    "category": "Object",
-}
-
 import bpy
+import os
 
 class OBJECT_OT_weight_objects_to_head_bone(bpy.types.Operator):
     bl_idname = "object.weight_objects_to_head_bone"
@@ -19,7 +8,7 @@ class OBJECT_OT_weight_objects_to_head_bone(bpy.types.Operator):
 
     def execute(self, context):
         # Find the base mesh object "BBody"
-        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.select_all(action='DESELECT')
         base_mesh_obj = bpy.data.objects.get("BBody")
 
         if not base_mesh_obj:
@@ -105,3 +94,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+   

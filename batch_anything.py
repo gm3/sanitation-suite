@@ -1,23 +1,9 @@
 import bpy
 import os
 
-## Script flow 
-##Define the add-on information using bl_info, including its name, author, version, Blender version, location, description, warning, wiki_url, and category.
-##Create a BatchVRMProcessProperties class, which inherits from bpy.types.PropertyGroup. This class defines properties related to input and output folders, the script file, and the export format.
-##Define the BATCH_OT_execute_script class, which inherits from bpy.types.Operator. This class is responsible for the main batch processing logic:
-##Get the input and output folders, script file, and export format from the BatchVRMProcessProperties.
-##Check if the script file exists; if not, report an error and cancel the operation.
-##Read the script file's content.
-##Iterate over the files in the input folder.
-##Load each file into the scene (the script provides an example for .obj files, but you need to adapt it to your specific file format).
-##Execute the script.
-##Export the processed file in the chosen format (VRM or GLB) to the output folder.
-##Delete objects and related data (meshes, materials, textures, images, and armatures) from the scene.
-##Define the BATCH_PT_vrm_process_panel class, which inherits from bpy.types.Panel. This class is responsible for creating the add-on's UI in Blender's 3D Viewport > Tools panel. It displays the properties from BatchVRMProcessProperties and the "Execute Script" button.
-##Implement the register() and unregister() functions, which register and unregister the classes and properties with Blender.
-##Check if the script is being run as the main module, and if so, call the register() function.
-##With this script, you can batch process multiple files by running a specified script on each file, and then export the resulting files in either VRM or GLB format. """
-
+def execute_script(script_code):
+    namespace = {"__builtins__": __builtins__}
+    exec(script_code, namespace)
 
 bl_info = {
     "name": "Batch Everything",
@@ -93,7 +79,10 @@ class BATCH_OT_execute_script(bpy.types.Operator):
         with open(script_file) as f:
             script_code = f.read()
 
-        for file in os.listdir(input_folder):
+        total_files = sum([1 for file in os.listdir(input_folder) if file.endswith(('.obj', '.vrm', '.glb', '.fbx'))])
+        bpy.context.window_manager.progress_begin(0, total_files)
+
+        for index, file in enumerate(os.listdir(input_folder)):
             filepath = os.path.join(input_folder, file)
 
             # Load file into the scene based on the chosen format
@@ -105,12 +94,12 @@ class BATCH_OT_execute_script(bpy.types.Operator):
             elif file_format == "GLB" and file.endswith(".glb"):
                 bpy.ops.import_scene.gltf(filepath=filepath)
             elif file_format == "FBX" and file.endswith(".fbx"):
-                bpy.ops.import_scene.fbx(filepath=filepath)
+                                bpy.ops.import_scene.fbx(filepath=filepath)
             else:
                 continue
 
             # Execute the script
-            exec(script_code, globals())
+            execute_script(script_code)
 
             # Export the file in the chosen format
             output_format = context.scene.batch_vrm_props.export_format
@@ -144,6 +133,10 @@ class BATCH_OT_execute_script(bpy.types.Operator):
             for block in bpy.data.armatures:
                 if block.users == 0:
                     bpy.data.armatures.remove(block)
+
+            bpy.context.window_manager.progress_update(index + 1)
+
+        bpy.context.window_manager.progress_end()
 
         self.report({'INFO'}, "Batch processing completed")
         return {'FINISHED'}
