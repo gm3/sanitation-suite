@@ -6,12 +6,12 @@ def execute_script(script_code):
     exec(script_code, namespace)
 
 bl_info = {
-    "name": "Batch Everything",
+    "name": "Batch Weights",
     "author": "OpenAI",
     "version": (1, 0),
     "blender": (2, 80, 0),
-    "location": "View3D > Tools > Batch Everything",
-    "description": "Batch process files with selected script",
+    "location": "View3D > Tools > Batch Weights",
+    "description": "Batch ALL Files Add Weights to HeadBone, with Conditions",
     "warning": "",
     "wiki_url": "",
     "category": "Object",
@@ -116,6 +116,9 @@ class BATCH_OT_execute_script(bpy.types.Operator):
                     break
 
             # Execute the script
+            # execute_script(script_code) test to see why its not loading scripts
+
+            # ______________________________________________________ STRAIT WEIGHT SCRIPT 
             base_mesh_obj = bpy.data.objects.get("BBody")
 
             if not base_mesh_obj:
@@ -200,6 +203,8 @@ class BATCH_OT_execute_script(bpy.types.Operator):
             bpy.ops.object.mode_set(mode='OBJECT')
 
             self.report({'INFO'}, "Weighted objects to head bone successfully")
+            
+            #_________________________________________________________________________END WEIGHT SCRIPT
 
             # Reset the context to the original context
             bpy.ops.object.select_all(action='DESELECT')
