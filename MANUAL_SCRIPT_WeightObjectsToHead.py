@@ -1,12 +1,10 @@
-print("Second script called")
-
 bl_info = {
-    "name": "Weight Objects to Head Bone",
+    "name": "Load, Merge Armatures, and Export VRM",
     "author": "OpenAI",
     "version": (1, 0),
     "blender": (2, 80, 0),
-    "location": "View3D > Object > Weight Objects to Head Bone",
-    "description": "Weights all objects except 'BBody' to the head bone with 100% influence",
+    "location": "View3D > Object > Load, Merge Armatures, and Export VRM",
+    "description": "Loads a VRM, merges all armatures, and exports it",
     "warning": "",
     "wiki_url": "",
     "category": "Object",
@@ -14,103 +12,59 @@ bl_info = {
 
 import bpy
 
-class OBJECT_OT_weight_objects_to_head_bone(bpy.types.Operator):
-    bl_idname = "object.weight_objects_to_head_bone"
-    bl_label = "Weight Objects to Head Bone"
+class OBJECT_OT_load_merge_export_vrm(bpy.types.Operator):
+    bl_idname = "object.load_merge_export_vrm"
+    bl_label = "Load, Merge Armatures, and Export VRM"
     bl_options = {'REGISTER', 'UNDO'}
 
+    input_path: bpy.props.StringProperty(name="Input Path", subtype='FILE_PATH')
+    output_path: bpy.props.StringProperty(name="Output Path", subtype='FILE_PATH')
+
     def execute(self, context):
-        # Find the base mesh object "BBody"
-        base_mesh_obj = bpy.data.objects.get("BBody")
+        try:
+            # Print paths for debugging
+            print("Input Path:", self.input_path)
+            print("Output Path:", self.output_path)
 
-        if not base_mesh_obj:
-            self.report({'ERROR'}, "Base mesh object 'BBody' not found in the scene")
+            # Import VRM file
+            bpy.ops.import_scene.vrm(filepath=self.input_path)
+
+            # List to collect all armature objects
+            armature_objects = [obj for obj in bpy.context.scene.objects if obj.type == 'ARMATURE']
+
+            if len(armature_objects) > 1:
+                # Set active object to first armature
+                bpy.context.view_layer.objects.active = armature_objects[0]
+                # Select all armature objects
+                for armature in armature_objects:
+                    armature.select_set(True)
+                # Join them into one (active object should be an armature)
+                bpy.ops.object.join()
+                print("Armatures merged")
+            else:
+                print("Only one or no armature found. No merge needed.")
+
+            # Export to VRM
+            bpy.ops.export_scene.vrm(filepath=self.output_path)
+            print("Exported VRM file")
+
+        except Exception as e:
+            self.report({'ERROR'}, str(e))
+            print("Exception:", str(e))
             return {'CANCELLED'}
-        else:
-            print("Base mesh object: ", base_mesh_obj.name)
 
-        # Check if the base mesh object has an armature modifier
-        armature_modifier = None
-        for modifier in base_mesh_obj.modifiers:
-            if modifier.type == 'ARMATURE':
-                armature_modifier = modifier
-                break
-
-        if not armature_modifier:
-            self.report({'ERROR'}, "Base mesh object must have an Armature modifier")
-            return {'CANCELLED'}
-        else:
-            print("Armature modifier found on base mesh object: ", armature_modifier.name)
-
-        # Get the armature object from the modifier
-        armature_obj = armature_modifier.object
-
-        if not armature_obj:
-            self.report({'ERROR'}, "Armature object not found in the scene")
-            return {'CANCELLED'}
-        else:
-            print("Armature object: ", armature_obj.name)
-
-        # Make sure armature is selected
-        bpy.ops.object.select_all(action='DESELECT')
-        armature_obj.select_set(True)
-        context.view_layer.objects.active = armature_obj
-
-        # Set armature to Pose mode
-        bpy.ops.object.mode_set(mode='POSE')
-
-        # Find the head bone
-        head_bone = None
-        for bone in armature_obj.pose.bones:
-            if bone.name == 'Head_bind':
-                head_bone = bone
-                break
-
-        if not head_bone:
-            self.report({'ERROR'}, "Head bone not found in armature")
-            return {'CANCELLED'}
-        else:
-            print("Head bone: ", head_bone.name)
-
-        # Iterate through all objects in the scene
-        for obj in bpy.data.objects:
-            # Check if the object is a mesh and not the base mesh object "BBody"
-            if obj.type == 'MESH' and obj != base_mesh_obj:
-                # Add an armature modifier to the object, if not present
-                armature_modifier = None
-                for modifier in obj.modifiers:
-                    if modifier.type == 'ARMATURE':
-                        armature_modifier = modifier
-                        break
-
-                if not armature_modifier:
-                    armature_modifier = obj.modifiers.new('Armature', 'ARMATURE')
-
-                # Set the armature object in the object's modifier
-                armature_modifier.object = armature_obj
-
-                # Add a new vertex group to the object and assign it to the head bone
-                vertex_group = obj.vertex_groups.new(name=head_bone.name)
-                vertices = [v.index for v in obj.data.vertices]
-                vertex_group.add(vertices, 1.0, 'REPLACE')  # 100% weight
-
-        # Set armature back to Object mode
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        self.report({'INFO'}, "Weighted objects to head bone successfully")
-
+        self.report({'INFO'}, "Process completed successfully")
         return {'FINISHED'}
 
-
 def menu_func(self, context):
-    self.layout.operator(OBJECT_OT_weight_objects_to_head_bone.bl_idname)
+    self.layout.operator(OBJECT_OT_load_merge_export_vrm.bl_idname)
 
 def register():
-    bpy.utils.register_class(OBJECT_OT_weight_objects_to_head_bone)
+    bpy.utils.register_class(OBJECT_OT_load_merge_export_vrm)
     bpy.types.VIEW3D_MT_object.append(menu_func)
 
 def unregister():
-    bpy.utils.unregister_class(OBJECT_OT_weight_objects_to_head_bone)
+    bpy.utils.unregister_class(OBJECT_OT_load_merge_export_vrm)
     bpy.types.VIEW3D_MT_object.remove(menu_func)
 
 if __name__ == "__main__":
